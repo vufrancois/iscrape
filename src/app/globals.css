@@ -1,26 +1,562 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════
+   Teenage Engineering — Clean, Functional, Minimal
+   ═══════════════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --te-bg: #FAFAF8;
+  --te-bg-card: #FFFFFF;
+  --te-bg-input: #F4F4F2;
+
+  /* Borders */
+  --te-border: #E5E5E3;
+  --te-border-strong: #D0D0CD;
+
+  /* Text */
+  --te-text: #0F0E12;
+  --te-text-secondary: #6B6B6F;
+  --te-text-tertiary: #9B9B9E;
+
+  /* Functional accents */
+  --te-blue: #1270B8;
+  --te-blue-hover: #0E5A95;
+  --te-green: #1AA167;
+  --te-green-light: #E8F5EF;
+  --te-red: #CE2021;
+  --te-red-light: #FDEAEA;
+  --te-amber-dark: #B38600;
+  --te-amber-light: #FFF8E1;
+
+  /* Tailwind aliases */
+  --background: var(--te-bg);
+  --foreground: var(--te-text);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-space-grotesk);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--te-bg);
+  color: var(--te-text);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Card ── */
+
+.te-card {
+  background: var(--te-bg-card);
+  border: 1px solid var(--te-border);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* ── Primary button (kept for legacy) ── */
+
+.te-button {
+  background: var(--te-blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 4px;
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.te-button:hover:not(:disabled) {
+  background: var(--te-blue-hover);
+}
+
+.te-button:active:not(:disabled) {
+  background: #0A4D7A;
+}
+
+.te-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Aqua button (macOS Classic) ── */
+
+.aqua-button {
+  position: relative;
+  color: #FFFFFF;
+  border: 1px solid #2462AD;
+  border-radius: 20px;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  background: linear-gradient(
+    180deg,
+    #7EC2F3 0%,
+    #4A9EE0 12%,
+    #2B7DD5 40%,
+    #1A68C3 60%,
+    #2880D8 80%,
+    #5BA8E8 100%
+  );
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
+  overflow: hidden;
+}
+
+/* Glossy highlight on top half */
+.aqua-button::before {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 8%;
+  right: 8%;
+  height: 45%;
+  border-radius: 16px 16px 50% 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.65) 0%,
+    rgba(255, 255, 255, 0.25) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+}
+
+.aqua-button:hover:not(:disabled) {
+  background: linear-gradient(
+    180deg,
+    #8ECBF7 0%,
+    #5AAAE6 12%,
+    #3888DA 40%,
+    #2575CE 60%,
+    #3590E2 80%,
+    #6BB4EF 100%
+  );
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.aqua-button:active:not(:disabled) {
+  background: linear-gradient(
+    180deg,
+    #5AA3D8 0%,
+    #3580C4 12%,
+    #1A62AF 40%,
+    #0F509A 60%,
+    #1C6AB8 80%,
+    #4A92D0 100%
+  );
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.aqua-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Input field ── */
+
+.te-input {
+  background: var(--te-bg-input);
+  border: 1px solid var(--te-border);
+  border-radius: 4px;
+  color: var(--te-text);
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-weight: 300;
+  font-size: 15px;
+  transition: border-color 0.15s ease;
+}
+
+.te-input::placeholder {
+  color: var(--te-text-tertiary);
+}
+
+.te-input:focus {
+  outline: none;
+  border-color: var(--te-blue);
+  box-shadow: 0 0 0 3px rgba(18, 112, 184, 0.1);
+}
+
+/* ── Platform badge ── */
+
+.te-badge {
+  background: var(--te-bg-input);
+  border: 1px solid var(--te-border);
+  border-radius: 4px;
+  color: var(--te-text-secondary);
+  transition: all 0.15s ease;
+}
+
+.te-badge:hover {
+  background: var(--te-bg-card);
+  border-color: var(--te-border-strong);
+  color: var(--te-text);
+}
+
+.te-badge-direct {
+  color: var(--te-text);
+  background: var(--te-bg-card);
+  border-color: var(--te-border-strong);
+}
+
+.te-badge-search {
+  color: var(--te-text-tertiary);
+}
+
+.te-badge-search:hover {
+  color: var(--te-text-secondary);
+}
+
+/* ── Track row ── */
+
+.te-track-row {
+  transition: background-color 0.15s ease;
+}
+
+.te-track-row:hover {
+  background-color: rgba(18, 112, 184, 0.03);
+}
+
+/* ── Spinner ── */
+
+.te-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--te-border);
+  border-top-color: var(--te-blue);
+  border-radius: 50%;
+  animation: te-spin 0.7s linear infinite;
+}
+
+@keyframes te-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Scrollbar ── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--te-border-strong);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--te-text-tertiary);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--te-border-strong) transparent;
+}
+
+/* ═══════════════════════════════════════════════════════
+   iPod Classic Simulator
+   ═══════════════════════════════════════════════════════ */
+
+/* ── Shell / bezel ── */
+
+.ipod-shell {
+  width: 380px;
+  background: linear-gradient(180deg, #E8E8E8 0%, #D4D4D4 20%, #C0C0C0 50%, #A8A8A8 80%, #B0B0B0 100%);
+  border-radius: 28px;
+  padding: 20px 20px 28px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  border: 1px solid #999;
+}
+
+/* ── Screen ── */
+
+.ipod-screen {
+  background: #FFFFFF;
+  border: 2px solid #555;
+  border-radius: 4px;
+  overflow: hidden;
+  height: 280px;
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.ipod-screen-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.ipod-screen-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Header bar ── */
+
+.ipod-header {
+  background: linear-gradient(180deg, #ECECEC 0%, #D8D8D8 100%);
+  border-bottom: 1px solid #B0B0B0;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 22px;
+  flex-shrink: 0;
+}
+
+.ipod-header-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: -0.01em;
+}
+
+/* ── List rows ── */
+
+.ipod-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  min-height: 32px;
+  border-bottom: 1px solid #E0E0E0;
+  font-size: 12px;
+  color: #000;
+  cursor: pointer;
+}
+
+.ipod-row:last-child {
+  border-bottom: none;
+}
+
+.ipod-row-selected {
+  background: linear-gradient(180deg, #4C8EF7 0%, #2968D9 100%);
+  color: #FFF;
+  border-bottom-color: #2560CC;
+}
+
+.ipod-row-selected .ipod-row-secondary {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.ipod-row-title {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+}
+
+.ipod-row-secondary {
+  color: #6B6B6B;
+  font-size: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ipod-row-arrow {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: #999;
+}
+
+.ipod-row-selected .ipod-row-arrow {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Platform links inside selected row */
+.ipod-row-links {
+  padding: 4px 0 2px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.ipod-row-links a {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  color: #FFF;
+  padding: 2px 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+
+.ipod-row-links a:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.ipod-row-links a svg {
+  fill: #FFF;
+  color: #FFF;
+}
+
+/* ── Click wheel ── */
+
+.ipod-wheel {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #E8E8E8 0%, #D0D0D0 50%, #C4C4C4 100%);
+  margin: 24px auto 0;
+  position: relative;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border: 1px solid #AAA;
+  user-select: none;
+  touch-action: none;
+}
+
+.ipod-wheel-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #D8D8D8 0%, #C0C0C0 50%, #B0B0B0 100%);
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid #999;
+}
+
+.ipod-wheel-label {
+  position: absolute;
+  font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #777;
+  letter-spacing: 0.02em;
+}
+
+.ipod-wheel-label-top {
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ipod-wheel-label-bottom {
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+}
+
+.ipod-wheel-label-left {
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+}
+
+.ipod-wheel-label-right {
+  right: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+}
+
+/* ── Progress bar animation ── */
+
+.ipod-progress-bar {
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, #4C8EF7, #2968D9);
+  border-radius: 2px;
+  animation: ipod-progress 1.5s ease-in-out infinite;
+}
+
+@keyframes ipod-progress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(250%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ── Now Playing detail view ── */
+
+.ipod-now-playing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 16px 16px;
+  gap: 8px;
+  flex: 1;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.ipod-now-playing::-webkit-scrollbar {
+  display: none;
+}
+
+.ipod-now-playing-art {
+  width: 140px;
+  height: 140px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #F0F0F0;
+  flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.ipod-now-playing-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.ipod-now-playing-artist {
+  font-size: 11px;
+  font-weight: 400;
+  color: #666;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  margin-top: -4px;
+}
+
+.ipod-now-playing-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 4px;
 }
