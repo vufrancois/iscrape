@@ -20,7 +20,6 @@ export default function Home() {
 
   const handleSubmit = useCallback(async (url: string) => {
     setError(null);
-    setScrapeResult(null);
     setResolveResult(null);
     setIsScraping(true);
 
@@ -95,7 +94,7 @@ export default function Home() {
           className="mb-8 text-[15px] font-semibold text-[var(--te-text-secondary)]"
           style={{ fontFamily: '-apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif' }}
         >
-          Paste a source and get streaming &amp; download links for every track.
+          Paste a link and scrape the tracks.
         </p>
 
         {/* URL Input */}
@@ -110,8 +109,8 @@ export default function Home() {
           </div>
         )}
 
-        {/* Loading state for scrape */}
-        {isScraping && (
+        {/* Loading state for scrape (only when no iPod is showing yet) */}
+        {isScraping && !scrapeResult && (
           <div className="te-card mt-6 flex items-center justify-center gap-3 px-6 py-8">
             <span className="te-spinner" />
             <span className="text-sm font-normal tracking-wide text-[var(--te-text-secondary)]">
@@ -121,7 +120,7 @@ export default function Home() {
         )}
 
         {/* iPod with results */}
-        {scrapeResult && !isScraping && (
+        {scrapeResult && (
           <div className="mt-8 flex justify-center">
             <IpodShell
               onScrollUp={() => scrollHandlers.current?.scrollUp()}

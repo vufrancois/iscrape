@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { ScrapedTrack, ScrapeResult } from "../types";
+import { parseArtistTitle, parseQuotedTrack, type ParsedTrackLine } from "./parse-utils";
 
 export function parseGeneric(url: string, html: string): ScrapeResult {
   const $ = cheerio.load(html);
@@ -18,7 +19,13 @@ export function parseGeneric(url: string, html: string): ScrapeResult {
     return buildResult(url, tracks, $, warnings);
   }
 
-  // Strategy 3: Regex on visible text
+  // Strategy 3: Heading-based patterns (blog listicles)
+  tracks = tryHeadingPatterns($);
+  if (tracks.length > 0) {
+    return buildResult(url, tracks, $, warnings);
+  }
+
+  // Strategy 4: Regex on visible text
   tracks = tryTextPatterns($);
   if (tracks.length > 0) {
     return buildResult(url, tracks, $, warnings);
@@ -138,6 +145,33 @@ function tryHtmlStructure($: cheerio.CheerioAPI): ScrapedTrack[] {
   return tracks;
 }
 
+function tryHeadingPatterns($: cheerio.CheerioAPI): ScrapedTrack[] {
+  const tracks: ScrapedTrack[] = [];
+  const seen = new Set<string>();
+
+  // Blog listicles use h2/h3/h4 headings for each track entry
+  // e.g., Rolling Stone: <h2>Artist, 'Song Title'</h2>
+  $("h2, h3, h4").each((_, el) => {
+    const text = $(el).text().trim();
+    const parsed = parseQuotedTrack(text) || parseArtistTitle(text);
+    if (parsed) {
+      const key = `${parsed.artist.toLowerCase()}::${parsed.title.toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        tracks.push({
+          position: tracks.length + 1,
+          artist: parsed.artist,
+          title: parsed.title,
+          raw: text,
+        });
+      }
+    }
+  });
+
+  // Require at least 2 matches to avoid false positives from a single heading
+  return tracks.length >= 2 ? tracks : [];
+}
+
 function tryTextPatterns($: cheerio.CheerioAPI): ScrapedTrack[] {
   const tracks: ScrapedTrack[] = [];
 
@@ -149,7 +183,7 @@ function tryTextPatterns($: cheerio.CheerioAPI): ScrapedTrack[] {
     .filter((l) => l.length > 0);
 
   for (const line of lines) {
-    const parsed = parseArtistTitle(line);
+    const parsed = parseArtistTitle(line) || parseQuotedTrack(line);
     if (parsed) {
       tracks.push({
         position: tracks.length + 1,
@@ -164,41 +198,6 @@ function tryTextPatterns($: cheerio.CheerioAPI): ScrapedTrack[] {
   return tracks;
 }
 
-interface ParsedTrackLine {
-  artist: string;
-  title: string;
-  timestamp?: string;
-}
-
-function parseArtistTitle(text: string): ParsedTrackLine | null {
-  // Strip leading numbers like "1." or "01."
-  let line = text.replace(/^\d+[\.\)]\s*/, "");
-
-  // Extract timestamp if present at the start
-  let timestamp: string | undefined;
-  const tsMatch = line.match(
-    /^(\d{1,2}:\d{2}(?::\d{2})?)\s+(.+)/
-  );
-  if (tsMatch) {
-    timestamp = tsMatch[1];
-    line = tsMatch[2];
-  }
-
-  // Match "Artist - Title" or "Artist — Title" or "Artist – Title"
-  const separatorMatch = line.match(
-    /^(.+?)\s*[-\u2013\u2014]\s+(.+)$/
-  );
-  if (separatorMatch) {
-    const artist = separatorMatch[1].trim();
-    const title = separatorMatch[2].trim();
-    // Basic sanity: both parts should be non-trivial
-    if (artist.length >= 2 && title.length >= 2 && artist.length < 100 && title.length < 200) {
-      return { artist, title, timestamp };
-    }
-  }
-
-  return null;
-}
 
 function parseTableRow(
   cells: string[]
