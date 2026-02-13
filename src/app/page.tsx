@@ -109,36 +109,25 @@ export default function Home() {
           </div>
         )}
 
-        {/* Loading state for scrape (only when no iPod is showing yet) */}
-        {isScraping && !scrapeResult && (
-          <div className="te-card mt-6 flex items-center justify-center gap-3 px-6 py-8">
-            <span className="te-spinner" />
-            <span className="text-sm font-normal tracking-wide text-[var(--te-text-secondary)]">
-              Scanning tracklist...
-            </span>
-          </div>
-        )}
-
-        {/* iPod with results */}
-        {scrapeResult && (
-          <div className="mt-8 flex justify-center">
-            <IpodShell
-              onScrollUp={() => scrollHandlers.current?.scrollUp()}
-              onScrollDown={() => scrollHandlers.current?.scrollDown()}
-              onMenu={() => menuHandler.current?.()}
-              onSelect={() => selectHandler.current?.()}
-            >
-              <IpodTrackList
-                scrapeResult={scrapeResult}
-                resolveResult={resolveResult}
-                isResolving={isResolving}
-                registerScrollHandlers={(h) => { scrollHandlers.current = h; }}
-                registerMenuHandler={(h) => { menuHandler.current = h; }}
-                registerSelectHandler={(h) => { selectHandler.current = h; }}
-              />
-            </IpodShell>
-          </div>
-        )}
+        {/* iPod — always visible */}
+        <div className="mt-8 flex justify-center">
+          <IpodShell
+            onScrollUp={() => scrollHandlers.current?.scrollUp()}
+            onScrollDown={() => scrollHandlers.current?.scrollDown()}
+            onMenu={() => menuHandler.current?.()}
+            onSelect={() => selectHandler.current?.()}
+          >
+            <IpodTrackList
+              scrapeResult={scrapeResult}
+              resolveResult={resolveResult}
+              isScraping={isScraping}
+              isResolving={isResolving}
+              registerScrollHandlers={(h) => { scrollHandlers.current = h; }}
+              registerMenuHandler={(h) => { menuHandler.current = h; }}
+              registerSelectHandler={(h) => { selectHandler.current = h; }}
+            />
+          </IpodShell>
+        </div>
       </main>
     </div>
   );

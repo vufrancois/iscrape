@@ -12,8 +12,9 @@ interface ScrollHandlers {
 }
 
 interface Props {
-  scrapeResult: ScrapeResult;
+  scrapeResult: ScrapeResult | null;
   resolveResult: ResolveResult | null;
+  isScraping: boolean;
   isResolving: boolean;
   registerScrollHandlers?: (handlers: ScrollHandlers) => void;
   registerMenuHandler?: (handler: () => void) => void;
@@ -23,16 +24,24 @@ interface Props {
 export function IpodTrackList({
   scrapeResult,
   resolveResult,
+  isScraping,
   isResolving,
   registerScrollHandlers,
   registerMenuHandler,
   registerSelectHandler,
 }: Props) {
-  const { tracks } = scrapeResult;
+  const tracks = scrapeResult?.tracks ?? [];
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [view, setView] = useState<"list" | "detail">("list");
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Reset selection when new scrape results arrive
+  const scrapeUrl = scrapeResult?.url;
+  useEffect(() => {
+    setSelectedIndex(0);
+    setView("list");
+  }, [scrapeUrl]);
 
   const resolvedMap = new Map(
     resolveResult?.tracks.map((t) => [t.position, t]) ?? []
@@ -105,15 +114,69 @@ export function IpodTrackList({
   const currentTrack = tracks[selectedIndex];
   const currentResolved = currentTrack ? resolvedMap.get(currentTrack.position) : undefined;
 
+  const hasResults = tracks.length > 0;
+
   return (
     <>
       <IpodHeader
-        title={view === "detail" ? "Now Playing" : "Scraped Tracklist"}
-        isLoading={showLoading}
+        title={view === "detail" ? "Now Playing" : hasResults ? "Scraped Tracklist" : "iScrape"}
+        isLoading={showLoading || isScraping}
       />
 
+      {/* Idle state — no results yet */}
+      {!hasResults && !isScraping && (
+        <div className="ipod-screen-scroll" style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "24px 16px",
+          color: "#999",
+          fontSize: 12,
+          fontFamily: "-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+          textAlign: "center",
+          gap: 8,
+        }}>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CCC" strokeWidth="1.5">
+            <path d="M9 18V5l12-2v13" />
+            <circle cx="6" cy="18" r="3" />
+            <circle cx="18" cy="16" r="3" />
+          </svg>
+          <span>Paste a link above to get started</span>
+        </div>
+      )}
+
+      {/* Scraping in progress */}
+      {!hasResults && isScraping && (
+        <div className="ipod-screen-scroll" style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "24px 16px",
+        }}>
+          <div style={{
+            width: "80%",
+            height: 4,
+            background: "#E0E0E0",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}>
+            <div className="ipod-progress-bar" />
+          </div>
+          <span style={{
+            marginTop: 12,
+            fontSize: 11,
+            color: "#888",
+            fontFamily: "-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif",
+          }}>
+            Scanning tracklist...
+          </span>
+        </div>
+      )}
+
       {/* Progress bar while resolving */}
-      {view === "list" && showLoading && (
+      {hasResults && view === "list" && showLoading && (
         <div className="ipod-screen-scroll" style={{
           display: "flex",
           flexDirection: "column",
@@ -142,7 +205,7 @@ export function IpodTrackList({
       )}
 
       {/* List view */}
-      {view === "list" && showTracks && (
+      {hasResults && view === "list" && showTracks && (
         <>
           {/* Stats row */}
           {resolveResult && (
@@ -172,7 +235,7 @@ export function IpodTrackList({
       )}
 
       {/* Detail view */}
-      {view === "detail" && currentTrack && (
+      {hasResults && view === "detail" && currentTrack && (
         <IpodNowPlaying
           track={currentTrack}
           resolved={currentResolved}
