@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   try {
     const { html } = await fetchPage(url);
-    const result = parseTracklist(url, html);
+    const result = await parseTracklist(url, html);
     return NextResponse.json(result);
   } catch (error) {
     const message =

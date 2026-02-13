@@ -10,7 +10,7 @@ export interface ScrapedTrack {
 
 export interface ScrapeResult {
   url: string;
-  sourceType: "soulection" | "generic";
+  sourceType: "soulection" | "generic" | "llm";
   tracks: ScrapedTrack[];
   metadata?: {
     pageTitle?: string;
