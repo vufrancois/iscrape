@@ -3,6 +3,7 @@
 interface Props {
   title: string;
   isLoading?: boolean;
+  isPlaying?: boolean;
 }
 
 function BatteryIcon() {
@@ -15,10 +16,13 @@ function BatteryIcon() {
   );
 }
 
-export function IpodHeader({ title, isLoading }: Props) {
+export function IpodHeader({ title, isLoading, isPlaying }: Props) {
   return (
     <div className="ipod-header">
       <span className="ipod-header-title">
+        {isPlaying && (
+          <span style={{ marginRight: 4, fontSize: 9 }}>{"\u25B6"}</span>
+        )}
         {isLoading ? "Loading..." : title}
       </span>
       <BatteryIcon />

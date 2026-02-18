@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import type { ScrapedTrack, ScrapeResult } from "../types";
 import { parseArtistTitle, parseQuotedTrack, type ParsedTrackLine } from "./parse-utils";
+import { extractRscText } from "./rsc-extract";
 
 export function parseGeneric(url: string, html: string): ScrapeResult {
   const $ = cheerio.load(html);
@@ -25,7 +26,23 @@ export function parseGeneric(url: string, html: string): ScrapeResult {
     return buildResult(url, tracks, $, warnings);
   }
 
-  // Strategy 4: Regex on visible text
+  // Strategy 4: Element-level text scanning
+  // Catches tracks in styled divs/spans/p that aren't headings (e.g. Beatportal)
+  tracks = tryElementTextPatterns($);
+  if (tracks.length > 0) {
+    return buildResult(url, tracks, $, warnings);
+  }
+
+  // Strategy 5: RSC payload text patterns (Next.js streaming apps)
+  const rscLines = extractRscText(html);
+  if (rscLines.length > 0) {
+    tracks = tryLinePatterns(rscLines);
+    if (tracks.length > 0) {
+      return buildResult(url, tracks, $, warnings);
+    }
+  }
+
+  // Strategy 6: Regex on visible text (body.text() split by newlines)
   tracks = tryTextPatterns($);
   if (tracks.length > 0) {
     return buildResult(url, tracks, $, warnings);
@@ -169,6 +186,77 @@ function tryHeadingPatterns($: cheerio.CheerioAPI): ScrapedTrack[] {
   });
 
   // Require at least 2 matches to avoid false positives from a single heading
+  return tracks.length >= 2 ? tracks : [];
+}
+
+function tryElementTextPatterns($: cheerio.CheerioAPI): ScrapedTrack[] {
+  const tracks: ScrapedTrack[] = [];
+  const seen = new Set<string>();
+
+  // Scan individual elements for track patterns.
+  // Many modern sites put "Artist – Title" in styled divs/spans/p
+  // rather than headings or list items.
+  $("div, p, span").each((_, el) => {
+    const $el = $(el);
+
+    // Only check leaf-ish elements — skip if it has many child elements
+    // (to avoid matching a parent container that concatenates child text)
+    if ($el.children().length > 3) return;
+
+    // Get the element's own direct text (not deeply nested children)
+    const text = $el
+      .contents()
+      .filter((__, node) => node.type === "text")
+      .text()
+      .trim();
+
+    // If no direct text, fall back to full text for simple leaf elements
+    const candidate =
+      text.length > 5 ? text : $el.children().length === 0 ? $el.text().trim() : "";
+
+    if (candidate.length < 5 || candidate.length > 150) return;
+
+    const parsed = parseArtistTitle(candidate) || parseQuotedTrack(candidate);
+    if (parsed) {
+      const key = `${parsed.artist.toLowerCase()}::${parsed.title.toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        tracks.push({
+          position: tracks.length + 1,
+          artist: parsed.artist,
+          title: parsed.title,
+          raw: candidate,
+        });
+      }
+    }
+  });
+
+  // Require at least 3 matches to avoid false positives
+  return tracks.length >= 3 ? tracks : [];
+}
+
+function tryLinePatterns(lines: string[]): ScrapedTrack[] {
+  const tracks: ScrapedTrack[] = [];
+  const seen = new Set<string>();
+
+  for (const line of lines) {
+    const parsed = parseArtistTitle(line) || parseQuotedTrack(line);
+    if (parsed) {
+      const key = `${parsed.artist.toLowerCase()}::${parsed.title.toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        tracks.push({
+          position: tracks.length + 1,
+          artist: parsed.artist,
+          title: parsed.title,
+          timestamp: parsed.timestamp,
+          raw: line,
+        });
+      }
+    }
+  }
+
+  // Require at least 2 matches
   return tracks.length >= 2 ? tracks : [];
 }
 

@@ -17,6 +17,7 @@ export default function Home() {
   const scrollHandlers = useRef<{ scrollUp: () => void; scrollDown: () => void } | null>(null);
   const menuHandler = useRef<(() => void) | null>(null);
   const selectHandler = useRef<(() => void) | null>(null);
+  const playPauseHandler = useRef<(() => void) | null>(null);
 
   const handleSubmit = useCallback(async (url: string) => {
     setError(null);
@@ -116,6 +117,7 @@ export default function Home() {
             onScrollDown={() => scrollHandlers.current?.scrollDown()}
             onMenu={() => menuHandler.current?.()}
             onSelect={() => selectHandler.current?.()}
+            onPlayPause={() => playPauseHandler.current?.()}
           >
             <IpodTrackList
               scrapeResult={scrapeResult}
@@ -125,6 +127,7 @@ export default function Home() {
               registerScrollHandlers={(h) => { scrollHandlers.current = h; }}
               registerMenuHandler={(h) => { menuHandler.current = h; }}
               registerSelectHandler={(h) => { selectHandler.current = h; }}
+              registerPlayPauseHandler={(h) => { playPauseHandler.current = h; }}
             />
           </IpodShell>
         </div>

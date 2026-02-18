@@ -9,9 +9,10 @@ interface Props {
   onScrollDown?: () => void;
   onMenu?: () => void;
   onSelect?: () => void;
+  onPlayPause?: () => void;
 }
 
-export function IpodShell({ children, onScrollUp, onScrollDown, onMenu, onSelect }: Props) {
+export function IpodShell({ children, onScrollUp, onScrollDown, onMenu, onSelect, onPlayPause }: Props) {
   const { wheelRef, onPointerDown, onPointerMove, onPointerUp } = useClickWheel({
     onScrollUp: onScrollUp ?? (() => {}),
     onScrollDown: onScrollDown ?? (() => {}),
@@ -42,7 +43,11 @@ export function IpodShell({ children, onScrollUp, onScrollDown, onMenu, onSelect
         </span>
         <span className="ipod-wheel-label ipod-wheel-label-left">&#9664;&#9664;</span>
         <span className="ipod-wheel-label ipod-wheel-label-right">&#9654;&#9654;</span>
-        <span className="ipod-wheel-label ipod-wheel-label-bottom">&#9654;&#10073;&#10073;</span>
+        <span
+          className="ipod-wheel-label ipod-wheel-label-bottom"
+          onClick={(e) => { e.stopPropagation(); onPlayPause?.(); }}
+          style={{ cursor: "pointer" }}
+        >&#9654;&#10073;&#10073;</span>
         <div
           className="ipod-wheel-center"
           onClick={(e) => { e.stopPropagation(); onSelect?.(); }}

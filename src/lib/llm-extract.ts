@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import * as cheerio from "cheerio";
 import type { ScrapedTrack, ScrapeResult } from "./types";
+import { extractRscText } from "./parsers/rsc-extract";
 
 const SYSTEM_PROMPT = `You extract music track listings from web page text. Return ONLY a JSON array of tracks found.
 
@@ -39,6 +40,9 @@ export async function extractTracksWithLLM(
     const ogImage =
       $('meta[property="og:image"]').attr("content") || undefined;
 
+    // Extract RSC text BEFORE removing script tags (RSC payloads live in scripts)
+    const rscLines = extractRscText(html);
+
     // Remove non-content elements
     $(
       "script, style, nav, footer, header, noscript, iframe, svg, form"
@@ -54,13 +58,20 @@ export async function extractTracksWithLLM(
       .replace(/\n{3,}/g, "\n\n")
       .trim();
 
-    if (cleaned.length < 20) return null; // Too little content to analyze
+    // Combine body text with RSC-extracted text for better LLM coverage
+    let combined = cleaned;
+    if (rscLines.length > 0) {
+      const rscText = rscLines.join("\n");
+      combined = cleaned + "\n\n--- Additional page content ---\n\n" + rscText;
+    }
+
+    if (combined.length < 20) return null; // Too little content to analyze
 
     // Truncate to limit token cost
     const text =
-      cleaned.length > MAX_CHARS
-        ? cleaned.slice(0, MAX_CHARS) + "\n\n[...truncated]"
-        : cleaned;
+      combined.length > MAX_CHARS
+        ? combined.slice(0, MAX_CHARS) + "\n\n[...truncated]"
+        : combined;
 
     // Call Claude Haiku
     const client = new Anthropic({ apiKey });
